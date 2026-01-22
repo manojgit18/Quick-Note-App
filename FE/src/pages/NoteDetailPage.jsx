@@ -5,19 +5,28 @@ import toast from "react-hot-toast";
 import { ArrowLeftIcon, LoaderIcon, Trash2Icon } from "lucide-react";
 
 const NoteDetailPage = () => {
-  const [note, setNote] = useState(null);
+  const [note, setNote] = useState({
+    title: "",
+    content: "",
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const { id } = useParams();
   const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
     const fetchNote = async () => {
       try {
         const res = await api.get(`/notes/${id}`);
-        setNote(res.data);
-      } catch {
+
+        // ✅ SAFE NORMALIZATION
+        setNote({
+          title: res.data?.title || "",
+          content: res.data?.content || "",
+        });
+      } catch (error) {
+        console.error("Error fetching note", error);
         toast.error("Failed to fetch note");
       } finally {
         setLoading(false);
@@ -28,29 +37,31 @@ const NoteDetailPage = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this note?")) return;
+    if (!window.confirm("Are you sure you want to delete this note?")) return;
+
     try {
       await api.delete(`/notes/${id}`);
       toast.success("Note deleted");
       navigate("/");
-    } catch {
-      toast.error("Failed to delete note");
+    } catch (error) {
+      toast.error("Failed to delete note", error);
     }
   };
 
   const handleSave = async () => {
-    if (!note.title.trim() || !note.content.trim()) {
-      toast.error("Title and content required");
+    // ✅ SAFE TRIM CHECK
+    if (!note.title?.trim() || !note.content?.trim()) {
+      toast.error("Please add both title and content");
       return;
     }
 
     setSaving(true);
     try {
       await api.put(`/notes/${id}`, note);
-      toast.success("Note updated");
+      toast.success("Note updated successfully");
       navigate("/");
-    } catch {
-      toast.error("Failed to update note");
+    } catch (error) {
+      toast.error("Failed to update note", error);
     } finally {
       setSaving(false);
     }
@@ -58,43 +69,37 @@ const NoteDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFF7E8] flex items-center justify-center">
-        <LoaderIcon className="animate-spin size-10 text-orange-500" />
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <LoaderIcon className="animate-spin size-10" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF7E8]">
+    <div className="min-h-screen bg-base-200">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-
-          <div className="flex justify-between mb-6">
-            <Link
-              to="/"
-              className="btn btn-ghost text-orange-700 hover:bg-orange-100"
-            >
-              <ArrowLeftIcon className="size-5" />
-              Back
+          <div className="flex items-center justify-between mb-6">
+            <Link to="/" className="btn btn-ghost">
+              <ArrowLeftIcon className="h-5 w-5" />
+              Back to Notes
             </Link>
 
-            <button
-              onClick={handleDelete}
-              className="btn btn-outline border-red-400 text-red-500 hover:bg-red-50"
-            >
-              <Trash2Icon className="size-5" />
-              Delete
+            <button onClick={handleDelete} className="btn btn-error btn-outline">
+              <Trash2Icon className="h-5 w-5" />
+              Delete Note
             </button>
           </div>
 
-          <div className="card bg-white border border-orange-100 shadow-md">
+          <div className="card bg-base-100">
             <div className="card-body">
               <div className="form-control mb-4">
                 <label className="label">
-                  <span className="label-text text-orange-800">Title</span>
+                  <span className="label-text">Title</span>
                 </label>
                 <input
-                  className="input input-bordered focus:border-orange-400"
+                  type="text"
+                  className="input input-bordered"
                   value={note.title}
                   onChange={(e) =>
                     setNote({ ...note, title: e.target.value })
@@ -104,10 +109,10 @@ const NoteDetailPage = () => {
 
               <div className="form-control mb-4">
                 <label className="label">
-                  <span className="label-text text-orange-800">Content</span>
+                  <span className="label-text">Content</span>
                 </label>
                 <textarea
-                  className="textarea textarea-bordered h-32 focus:border-orange-400"
+                  className="textarea textarea-bordered h-32"
                   value={note.content}
                   onChange={(e) =>
                     setNote({ ...note, content: e.target.value })
@@ -115,22 +120,17 @@ const NoteDetailPage = () => {
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="card-actions justify-end">
                 <button
+                  className="btn btn-primary"
                   disabled={saving}
                   onClick={handleSave}
-                  className="px-5 py-2 rounded-lg
-                             bg-gradient-to-r from-orange-400 to-orange-500
-                             text-white font-semibold
-                             hover:from-orange-500 hover:to-orange-600
-                             transition-all disabled:opacity-60"
                 >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
