@@ -1,0 +1,22 @@
+{
+  "name": "quick-notes",
+  "version": "1.0.0",
+  "description": "A simple full stack web app for note making.",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install --prefix BE && npm install --prefix FE && npm run build --prefix FE",
+    "start": "npm run start --prefix BE"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manojgit18/Quick-Note-App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/manojgit18/Quick-Note-App/issues"
+  },
+  "homepage": "https://github.com/manojgit18/Quick-Note-App#readme"
+}
