@@ -26,7 +26,7 @@ const NoteDetailPage = () => {
           content: res.data?.content || "",
         });
       } catch (err) {
-        toast.error("Failed to load note");
+        toast.error("Failed to load note",err);
       } finally {
         setLoading(false);
       }
