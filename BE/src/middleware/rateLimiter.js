@@ -1,18 +1,25 @@
-const ratelimit = require("../config/upstash")
+const ratelimit = require("../config/upstash");
 
-const ratelimiter = async(req,res,next)=>{
-      try {
-        const {success} = await ratelimit.limit("my-limit-key")
+const rateLimiter = async (req, res, next) => {
+  try {
+    const identifier =
+      req.ip || req.headers["x-forwarded-for"] || "anonymous";
 
-        if(!success){
-            return res.status(429).json({
-                message:"too many requests"
-            })
-        }
-        next()
-      } catch (error) {
-        console.log("ratelimiting error", error)        
-      }
-}
+    const { success } = await ratelimit.limit(identifier);
 
-module.exports = ratelimiter
+    if (!success) {
+      return res.status(429).json({
+        message: "Too many requests. Please slow down.",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Rate limiting error:", error);
+
+    // Fail open (do NOT block app if limiter fails)
+    next();
+  }
+};
+
+module.exports = rateLimiter;
